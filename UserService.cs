@@ -1,68 +1,71 @@
-
-public interface IUserService
+namespace UserService_test_task
 {
-    public void CreateUser(string name, string email, string password, string role);
-    public List<string> GetUsers();
-    public void UpdateUserRole(int userId, string newRole);
-}
 
-public class UserService : IUserService
-{
-    public void CreateUser(string name, string email, string password, string role)
+    public interface IUserService
     {
-        if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            throw new Exception("Invalid input");
-        }
-
-        var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-        if (!emailRegex.IsMatch(email))
-        {
-            throw new Exception("Invalid email");
-        }
-
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-
-        using (var db = new SqlConnection("connectionString"))
-        {
-            db.Open();
-            var command = new SqlCommand($"INSERT INTO Users (Name, Email, PasswordHash, Role) VALUES ('{name}', '{email}', '{passwordHash}', '{role}')", db);
-            command.ExecuteNonQuery();
-        }
+        public void CreateUser(CreateUserDto userDto);
+        public List<string> GetUsers();
+        public void UpdateUserRole(UpdateUserRoleDto userRoleDto);
     }
 
-    public List<string> GetUsers()
+    public class UserService : IUserService
     {
-        var users = new List<string>();
-
-        using (var db = new SqlConnection("connectionString"))
+        public void CreateUser(CreateUserDto userDto)
         {
-            db.Open();
-            var command = new SqlCommand("SELECT Name FROM Users", db);
-            using (var reader = command.ExecuteReader())
+            if (string.IsNullOrEmpty(userDto.Name) || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
             {
-                while (reader.Read())
-                {
-                    users.Add(reader.GetString(0));
-                }
+                throw new Exception("Invalid input");
+            }
+
+            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            if (!emailRegex.IsMatch(userDto.Email))
+            {
+                throw new Exception("Invalid email");
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+
+            using (var db = new SqlConnection("connectionString"))
+            {
+                db.Open();
+                var command = new SqlCommand($"INSERT INTO Users (Name, Email, PasswordHash, Role) VALUES ('{userDto.Name}', '{userDto.Email}', '{passwordHash}', '{userDto.Role}')", db);
+                command.ExecuteNonQuery();
             }
         }
 
-        return users;
-    }
-
-    public void UpdateUserRole(int userId, string newRole)
-    {
-        if (newRole != "Admin" && newRole != "User")
+        public List<string> GetUsers()
         {
-            throw new Exception("Invalid role");
+            var users = new List<string>();
+
+            using (var db = new SqlConnection("connectionString"))
+            {
+                db.Open();
+                var command = new SqlCommand("SELECT Name FROM Users", db);
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        users.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return users;
         }
 
-        using (var db = new SqlConnection("connectionString"))
+        public void UpdateUserRole(UpdateUserRoleDto userRoleDto)
         {
-            db.Open();
-            var command = new SqlCommand($"UPDATE Users SET Role = '{newRole}' WHERE Id = {userId}", db);
-            command.ExecuteNonQuery();
+            if (userRoleDto.NewRole != "Admin" && userRoleDto.NewRole != "User")
+            {
+                throw new Exception("Invalid role");
+            }
+
+            using (var db = new SqlConnection("connectionString"))
+            {
+                db.Open();
+                var command = new SqlCommand($"UPDATE Users SET Role = '{userRoleDto.NewRole}' WHERE Id = {userRoleDto.UserId}", db);
+                command.ExecuteNonQuery();
+            }
         }
     }
 }
