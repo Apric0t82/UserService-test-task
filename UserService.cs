@@ -1,4 +1,12 @@
-public class UserService
+
+public interface IUserService
+{
+    public void CreateUser(string name, string email, string password, string role);
+    public List<string> GetUsers();
+    public void UpdateUserRole(int userId, string newRole);
+}
+
+public class UserService : IUserService
 {
     public void CreateUser(string name, string email, string password, string role)
     {
