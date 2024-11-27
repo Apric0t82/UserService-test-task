@@ -10,38 +10,34 @@ namespace UserService_test_task
 
     public class UserService : IUserService
     {
+        private readonly AppDbContext _context;
+
+        public UserService(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public void CreateUser(CreateUserDto userDto)
         {
             ValidateUserInput(userDto);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
 
-            using (var db = new SqlConnection("connectionString"))
+            var user = new User
             {
-                db.Open();
-                var command = new SqlCommand($"INSERT INTO Users (Name, Email, PasswordHash, Role) VALUES ('{userDto.Name}', '{userDto.Email}', '{passwordHash}', '{userDto.Role}')", db);
-                command.ExecuteNonQuery();
-            }
+                Name = userDto.Name,
+                Email = userDto.Email,
+                PasswordHash = passwordHash,
+                Role = userDto.Role
+            };
+
+            _context.Users.Add(user);
+            _context.SaveChanges();
         }
 
         public List<string> GetUsers()
         {
-            var users = new List<string>();
-
-            using (var db = new SqlConnection("connectionString"))
-            {
-                db.Open();
-                var command = new SqlCommand("SELECT Name FROM Users", db);
-                using (var reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        users.Add(reader.GetString(0));
-                    }
-                }
-            }
-
-            return users;
+            return _context.Users.Select(u => u.Name).ToList();
         }
 
         public void UpdateUserRole(UpdateUserRoleDto userRoleDto)
@@ -51,12 +47,14 @@ namespace UserService_test_task
                 throw new ArgumentException($"Invalid role: {userRoleDto.NewRole}");
             }
 
-            using (var db = new SqlConnection("connectionString"))
+            var user = _context.Users.Find(userRoleDto.UserId);
+            if (user == null)
             {
-                db.Open();
-                var command = new SqlCommand($"UPDATE Users SET Role = '{userRoleDto.NewRole}' WHERE Id = {userRoleDto.UserId}", db);
-                command.ExecuteNonQuery();
+                throw new KeyNotFoundException("User not found");
             }
+
+            user.Role = userRoleDto.NewRole;
+            _context.SaveChanges();
         }
 
         private void ValidateUserInput(CreateUserDto userDto)
