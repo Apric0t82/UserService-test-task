@@ -23,12 +23,14 @@ namespace UserService_test_task
         {
             ValidateUserInput(userDto);
 
+            var validatedEmail = new Email(userDto.Email);
+
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
 
             var user = new User
             {
                 Name = userDto.Name,
-                Email = userDto.Email,
+                Email = validatedEmail,
                 PasswordHash = passwordHash,
                 Role = userDto.Role
             };
@@ -67,12 +69,6 @@ namespace UserService_test_task
                 string.IsNullOrWhiteSpace(userDto.Password) || !IsValidRole(userDto.Role))
             {
                 throw new ArgumentException("Invalid user input");
-            }
-
-            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-            if (!emailRegex.IsMatch(userDto.Email))
-            {
-                throw new Exception("Invalid email");
             }
         }
 
