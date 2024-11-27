@@ -12,16 +12,7 @@ namespace UserService_test_task
     {
         public void CreateUser(CreateUserDto userDto)
         {
-            if (string.IsNullOrEmpty(userDto.Name) || string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
-            {
-                throw new Exception("Invalid input");
-            }
-
-            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
-            if (!emailRegex.IsMatch(userDto.Email))
-            {
-                throw new Exception("Invalid email");
-            }
+            ValidateUserInput(userDto);
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
 
@@ -55,9 +46,9 @@ namespace UserService_test_task
 
         public void UpdateUserRole(UpdateUserRoleDto userRoleDto)
         {
-            if (userRoleDto.NewRole != "Admin" && userRoleDto.NewRole != "User")
+            if (!IsValidRole(userRoleDto.NewRole))
             {
-                throw new Exception("Invalid role");
+                throw new ArgumentException($"Invalid role: {userRoleDto.NewRole}");
             }
 
             using (var db = new SqlConnection("connectionString"))
@@ -66,6 +57,27 @@ namespace UserService_test_task
                 var command = new SqlCommand($"UPDATE Users SET Role = '{userRoleDto.NewRole}' WHERE Id = {userRoleDto.UserId}", db);
                 command.ExecuteNonQuery();
             }
+        }
+
+        private void ValidateUserInput(CreateUserDto userDto)
+        {
+            if (string.IsNullOrWhiteSpace(userDto.Name) || string.IsNullOrWhiteSpace(userDto.Email) ||
+                string.IsNullOrWhiteSpace(userDto.Password) || !IsValidRole(userDto.Role))
+            {
+                throw new ArgumentException("Invalid user input");
+            }
+
+            var emailRegex = new System.Text.RegularExpressions.Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            if (!emailRegex.IsMatch(userDto.Email))
+            {
+                throw new Exception("Invalid email");
+            }
+        }
+
+        private bool IsValidRole(string role)
+        {
+            var validRoles = new[] { "User", "Admin", "SuperAdmin" };
+            return validRoles.Contains(role);
         }
     }
 }
