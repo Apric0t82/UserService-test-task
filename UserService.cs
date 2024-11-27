@@ -1,11 +1,13 @@
+using Microsoft.EntityFrameworkCore;
+
 namespace UserService_test_task
 {
 
     public interface IUserService
     {
-        public void CreateUser(CreateUserDto userDto);
-        public List<string> GetUsers();
-        public void UpdateUserRole(UpdateUserRoleDto userRoleDto);
+        Task<int> CreateUserAsync(CreateUserDto userDto);
+        Task<List<string>> GetUsersAsync();
+        Task UpdateUserRoleAsync(UpdateUserRoleDto roleDto);
     }
 
     public class UserService : IUserService
@@ -17,7 +19,7 @@ namespace UserService_test_task
             _context = context;
         }
 
-        public void CreateUser(CreateUserDto userDto)
+        public async Task<int> CreateUserAsync(CreateUserDto userDto)
         {
             ValidateUserInput(userDto);
 
@@ -32,29 +34,31 @@ namespace UserService_test_task
             };
 
             _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            return user.Id;
         }
 
-        public List<string> GetUsers()
+        public async Task<List<string>> GetUsersAsync()
         {
-            return _context.Users.Select(u => u.Name).ToList();
+            return await _context.Users.Select(u => u.Name).ToListAsync();
         }
 
-        public void UpdateUserRole(UpdateUserRoleDto userRoleDto)
+        public async Task UpdateUserRoleAsync(UpdateUserRoleDto userRoleDto)
         {
             if (!IsValidRole(userRoleDto.NewRole))
             {
                 throw new ArgumentException($"Invalid role: {userRoleDto.NewRole}");
             }
 
-            var user = _context.Users.Find(userRoleDto.UserId);
+            var user = await _context.Users.FindAsync(userRoleDto.UserId);
             if (user == null)
             {
                 throw new KeyNotFoundException("User not found");
             }
 
             user.Role = userRoleDto.NewRole;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         private void ValidateUserInput(CreateUserDto userDto)
