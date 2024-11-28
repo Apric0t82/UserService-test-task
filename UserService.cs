@@ -7,6 +7,7 @@ namespace UserService_test_task
     {
         Task<int> CreateUserAsync(CreateUserDto userDto);
         Task<List<UserDTO>> GetUsersAsync();
+        Task<UserDTO> GetUserByIdAsync(int id);
         Task UpdateUserRoleAsync(UpdateUserRoleDto roleDto);
     }
 
@@ -51,6 +52,23 @@ namespace UserService_test_task
                 Email = u.Email,
                 Role = u.Role
             }).ToList();
+        }
+
+        public async Task<UserDTO> GetUserByIdAsync(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            return new UserDTO
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role
+            };
         }
 
         public async Task UpdateUserRoleAsync(UpdateUserRoleDto userRoleDto)
