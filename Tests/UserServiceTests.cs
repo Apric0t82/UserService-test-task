@@ -6,12 +6,19 @@ namespace UserService_test_task.Tests
 {
     public class UserServiceTests
     {
+        private Mock<AppDbContext> _mockContext;
+        private UserService _userService;
+
+        public UserServiceTests()
+        {
+            _mockContext = new Mock<AppDbContext>();
+            _userService = new UserService(_mockContext.Object);
+        }
+
         [Fact]
         public async Task CreateUserAsync_ShouldCreateUser()
         {
             // Arrange
-            var mockContext = new Mock<AppDbContext>();
-            var userService = new UserService(mockContext.Object);
             var userDto = new CreateUserDto
             {
                 Name = "Test User",
@@ -21,18 +28,16 @@ namespace UserService_test_task.Tests
             };
 
             // Act
-            await userService.CreateUserAsync(userDto);
+            await _userService.CreateUserAsync(userDto);
 
             // Assert
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact]
         public async Task CreateUserAsync_ShouldNotCreateUser_WhenInputIsInvalid()
         {
             // Arrange
-            var mockContext = new Mock<AppDbContext>();
-            var userService = new UserService(mockContext.Object);
             var invalidUserDto = new CreateUserDto
             {
                 Name = "",
@@ -42,10 +47,10 @@ namespace UserService_test_task.Tests
             };
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => userService.CreateUserAsync(invalidUserDto));
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => _userService.CreateUserAsync(invalidUserDto));
             Assert.Contains("Invalid user input", exception.Message);
 
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Never);
+            _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Never);
         }
 
         [Fact]
@@ -73,20 +78,17 @@ namespace UserService_test_task.Tests
             };
 
             var mockSet = new Mock<DbSet<User>>();
-            var mockContext = new Mock<AppDbContext>();
 
-            mockContext.Setup(m => m.Users.FindAsync(userId))
+            _mockContext.Setup(m => m.Users.FindAsync(userId))
                        .ReturnsAsync(existingUser);
 
-            var userService = new UserService(mockContext.Object);
-
             // Act
-            await userService.UpdateUserAsync(updatedUser);
+            await _userService.UpdateUserAsync(updatedUser);
 
             // Assert
             Assert.Equal("Admin", existingUser.Role);
 
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact]
@@ -105,22 +107,20 @@ namespace UserService_test_task.Tests
             };
 
             var mockSet = new Mock<DbSet<User>>();
-            var mockContext = new Mock<AppDbContext>();
 
-            mockContext.Setup(m => m.Users.FindAsync(userId))
+            _mockContext.Setup(m => m.Users.FindAsync(userId))
                        .ReturnsAsync(existingUser);
 
             mockSet.Setup(m => m.Remove(existingUser));
-            mockContext.Setup(m => m.Users).Returns(mockSet.Object);
+            _mockContext.Setup(m => m.Users).Returns(mockSet.Object);
 
-            var userService = new UserService(mockContext.Object);
 
             // Act
-            await userService.DeleteUserAsync(userId);
+            await _userService.DeleteUserAsync(userId);
 
             // Assert
             mockSet.Verify(m => m.Remove(existingUser), Times.Once);
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
+            _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
         }
 
         [Fact]
@@ -128,18 +128,15 @@ namespace UserService_test_task.Tests
         {
             // Arrange
             var userId = 999; // Non-existent user
-            var mockContext = new Mock<AppDbContext>();
 
-            mockContext.Setup(m => m.Users.FindAsync(userId))
+            _mockContext.Setup(m => m.Users.FindAsync(userId))
                        .ReturnsAsync((User)null); // User not found
 
-            var userService = new UserService(mockContext.Object);
-
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => userService.DeleteUserAsync(userId));
+            var exception = await Assert.ThrowsAsync<KeyNotFoundException>(() => _userService.DeleteUserAsync(userId));
             Assert.Contains($"User with ID {userId} not found", exception.Message);
 
-            mockContext.Verify(m => m.SaveChangesAsync(default), Times.Never); // Ensure no save attempts
+            _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Never); // Ensure no save attempts
         }
     }
 }
