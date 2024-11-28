@@ -1,9 +1,11 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using UserService_test_task.Filters;
 
 namespace UserService_test_task.Controllers
 {
+    [ValidateModel]
     public class WebSocketController
     {
         private readonly RequestDelegate _next;

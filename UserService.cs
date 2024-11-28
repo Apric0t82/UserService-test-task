@@ -23,16 +23,12 @@ namespace UserService_test_task
 
         public async Task<int> CreateUserAsync(CreateUserDto userDto)
         {
-            ValidateUserInput(userDto);
-
-            var validatedEmail = new Email(userDto.Email);
-
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
 
             var user = new User
             {
                 Name = userDto.Name,
-                Email = validatedEmail,
+                Email = userDto.Email,
                 PasswordHash = passwordHash,
                 Role = userDto.Role
             };
@@ -88,21 +84,6 @@ namespace UserService_test_task
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
-        }
-
-        private void ValidateUserInput(CreateUserDto userDto)
-        {
-            if (string.IsNullOrWhiteSpace(userDto.Name) || string.IsNullOrWhiteSpace(userDto.Email) ||
-                string.IsNullOrWhiteSpace(userDto.Password) || !IsValidRole(userDto.Role))
-            {
-                throw new ArgumentException("Invalid user input");
-            }
-        }
-
-        private bool IsValidRole(string role)
-        {
-            var validRoles = new[] { "User", "Admin", "SuperAdmin" };
-            return validRoles.Contains(role);
         }
     }
 }

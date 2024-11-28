@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using UserService_test_task.Filters;
 
 namespace UserService_test_task.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ValidateModel]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
