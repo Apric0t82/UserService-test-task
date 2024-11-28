@@ -18,14 +18,15 @@ namespace UserService_test_task.Controllers
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto userDto)
         {
             var userId = await _userService.CreateUserAsync(userDto);
-            return CreatedAtAction(nameof(FetchUsers), new { id = userId }, null);
+            return CreatedAtAction(nameof(CreateUser), new { id = userId }, null);
         }
 
         [HttpGet]
-        public async Task<IActionResult> FetchUsers()
+        public async Task<IActionResult> GetUserNames()
         {
             var users = await _userService.GetUsersAsync();
-            return Ok(users);
+            var userNames = users.Select(u => u.Name).ToList();
+            return Ok(userNames);
         }
 
         [HttpPut("role")]

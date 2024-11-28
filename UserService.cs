@@ -6,7 +6,7 @@ namespace UserService_test_task
     public interface IUserService
     {
         Task<int> CreateUserAsync(CreateUserDto userDto);
-        Task<List<string>> GetUsersAsync();
+        Task<List<User>> GetUsersAsync();
         Task UpdateUserRoleAsync(UpdateUserRoleDto roleDto);
     }
 
@@ -41,9 +41,9 @@ namespace UserService_test_task
             return user.Id;
         }
 
-        public async Task<List<string>> GetUsersAsync()
+        public async Task<List<User>> GetUsersAsync()
         {
-            return await _context.Users.Select(u => u.Name).ToListAsync();
+            return await _context.Users.ToListAsync();
         }
 
         public async Task UpdateUserRoleAsync(UpdateUserRoleDto userRoleDto)
