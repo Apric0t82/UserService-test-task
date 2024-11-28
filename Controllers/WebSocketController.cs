@@ -1,4 +1,5 @@
-﻿using System.Net.WebSockets;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using UserService_test_task.Filters;
@@ -6,27 +7,26 @@ using UserService_test_task.Filters;
 namespace UserService_test_task.Controllers
 {
     [ValidateModel]
-    public class WebSocketController
+    public class WebSocketController : ControllerBase
     {
-        private readonly RequestDelegate _next;
         private readonly IUserService _userService;
 
-        public WebSocketController(RequestDelegate next, IUserService userService)
+        public WebSocketController(IUserService userService)
         {
-            _next = next;
             _userService = userService;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        [Route("/ws")]
+        public async Task Get()
         {
-            if (context.WebSockets.IsWebSocketRequest)
+            if (HttpContext.WebSockets.IsWebSocketRequest)
             {
-                using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 await HandleWebSocket(webSocket);
             }
             else
             {
-                await _next(context);
+                HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
             }
         }
 
@@ -42,8 +42,9 @@ namespace UserService_test_task.Controllers
                     var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
                     var user = JsonSerializer.Deserialize<User>(message);
+                    var existing = await _userService.GetUserByIdAsync(user!.Id) ?? null;
 
-                    if (user != null)
+                    if (user != null && existing != null)
                     {
                         await _userService.UpdateUserAsync(user);
 
