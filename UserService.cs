@@ -9,6 +9,7 @@ namespace UserService_test_task
         Task<List<UserDTO>> GetUsersAsync();
         Task<UserDTO> GetUserByIdAsync(int id);
         Task UpdateUserAsync(User user);
+        Task DeleteUserAsync(int id);
     }
 
     public class UserService : IUserService
@@ -74,6 +75,18 @@ namespace UserService_test_task
         public async Task UpdateUserAsync(User user)
         {
             _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteUserAsync(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
+            _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
 
