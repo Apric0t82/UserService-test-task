@@ -25,12 +25,6 @@
         public string Role { get; set; } = string.Empty;
     }
 
-    public class UpdateUserRoleDto
-    {
-        public int UserId { get; set; }
-        public string NewRole { get; set; } = string.Empty;
-    }
-
     public class Email 
     {
         private readonly System.Text.RegularExpressions.Regex _emailRegex = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");

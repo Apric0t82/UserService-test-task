@@ -8,7 +8,7 @@ namespace UserService_test_task
         Task<int> CreateUserAsync(CreateUserDto userDto);
         Task<List<UserDTO>> GetUsersAsync();
         Task<UserDTO> GetUserByIdAsync(int id);
-        Task UpdateUserRoleAsync(UpdateUserRoleDto roleDto);
+        Task UpdateUserAsync(User user);
     }
 
     public class UserService : IUserService
@@ -71,20 +71,9 @@ namespace UserService_test_task
             };
         }
 
-        public async Task UpdateUserRoleAsync(UpdateUserRoleDto userRoleDto)
+        public async Task UpdateUserAsync(User user)
         {
-            if (!IsValidRole(userRoleDto.NewRole))
-            {
-                throw new ArgumentException($"Invalid role: {userRoleDto.NewRole}");
-            }
-
-            var user = await _context.Users.FindAsync(userRoleDto.UserId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
-
-            user.Role = userRoleDto.NewRole;
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
 

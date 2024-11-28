@@ -29,10 +29,21 @@ namespace UserService_test_task.Controllers
             return Ok(userNames);
         }
 
-        [HttpPut("role")]
-        public async Task<IActionResult> UpdateUserRole([FromBody] UpdateUserRoleDto roleDto)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
         {
-            await _userService.UpdateUserRoleAsync(roleDto);
+            if (user == null || user.Id != id) {  
+                return BadRequest(); 
+            }
+
+            var existing = await _userService.GetUserByIdAsync(id);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+            
+            await _userService.UpdateUserAsync(user);
+
             return NoContent();
         }
     }
