@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserService_test_task.Extensions;
 
 namespace UserService_test_task
 {
@@ -15,15 +16,17 @@ namespace UserService_test_task
     public class UserService : IUserService
     {
         private readonly AppDbContext _context;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public UserService(AppDbContext context)
+        public UserService(AppDbContext context, IPasswordHasher passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<int> CreateUserAsync(CreateUserDto userDto)
         {
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+            var passwordHash = _passwordHasher.HashPassword(userDto.Password);
 
             var user = new User
             {
@@ -70,6 +73,11 @@ namespace UserService_test_task
 
         public async Task UpdateUserAsync(User user)
         {
+            if (user == null)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

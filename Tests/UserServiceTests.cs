@@ -1,18 +1,21 @@
 ﻿using Xunit;
 using Moq;
 using Microsoft.EntityFrameworkCore;
+using UserService_test_task.Extensions;
 
 namespace UserService_test_task.Tests
 {
     public class UserServiceTests
     {
         private Mock<AppDbContext> _mockContext;
+        private Mock<IPasswordHasher> _mockPasswordHasher;
         private UserService _userService;
 
         public UserServiceTests()
         {
             _mockContext = new Mock<AppDbContext>();
-            _userService = new UserService(_mockContext.Object);
+            _mockPasswordHasher = new Mock<IPasswordHasher>();
+            _userService = new UserService(_mockContext.Object, _mockPasswordHasher.Object);
         }
 
         [Fact]
@@ -27,10 +30,20 @@ namespace UserService_test_task.Tests
                 Role = "User"
             };
 
+            _mockPasswordHasher.Setup(p => p.HashPassword(userDto.Password))
+                      .Returns("hashed_password");
+
             // Act
             await _userService.CreateUserAsync(userDto);
 
             // Assert
+            _mockContext.Verify(m => m.Users.Add(It.Is<User>(u =>
+                u.Name == userDto.Name &&
+                u.Email == userDto.Email &&
+                u.PasswordHash == "hashed_password" &&
+                u.Role == userDto.Role
+            )), Times.Once);
+
             _mockContext.Verify(m => m.SaveChangesAsync(default), Times.Once);
         }
 
@@ -63,7 +76,7 @@ namespace UserService_test_task.Tests
             {
                 Id = userId,
                 Name = "Old Name",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test1234"),
+                PasswordHash = _mockPasswordHasher.Object.HashPassword("Test1234"),
                 Email = "old@example.com",
                 Role = "User"
             };
@@ -72,7 +85,7 @@ namespace UserService_test_task.Tests
             {
                 Id = userId,
                 Name = "New Name",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test12345"),
+                PasswordHash = _mockPasswordHasher.Object.HashPassword("Test12345"),
                 Email = "new@example.com",
                 Role = "Admin"
             };
@@ -101,7 +114,7 @@ namespace UserService_test_task.Tests
             {
                 Id = userId,
                 Name = "Test User",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Test1234"),
+                PasswordHash = _mockPasswordHasher.Object.HashPassword("Test1234"),
                 Email = "test@example.com",
                 Role = "User"
             };
