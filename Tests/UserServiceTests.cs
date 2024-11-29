@@ -2,6 +2,9 @@
 using Moq;
 using Microsoft.EntityFrameworkCore;
 using UserService_test_task.Extensions;
+using UserService_test_task.Context;
+using UserService_test_task.Model;
+using UserService_test_task.Services;
 
 namespace UserService_test_task.Tests
 {

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using UserService_test_task.Model;
 
-namespace UserService_test_task
+namespace UserService_test_task.Context
 {
     public class AppDbContext : DbContext
     {

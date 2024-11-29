@@ -3,6 +3,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using UserService_test_task.Filters;
+using UserService_test_task.Model;
+using UserService_test_task.Services;
 
 namespace UserService_test_task.Controllers
 {

@@ -1,17 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using UserService_test_task.Context;
 using UserService_test_task.Extensions;
+using UserService_test_task.Model;
 
-namespace UserService_test_task
+namespace UserService_test_task.Services
 {
-
-    public interface IUserService
-    {
-        Task<int> CreateUserAsync(CreateUserDto userDto);
-        Task<List<UserDTO>> GetUsersAsync();
-        Task<UserDTO> GetUserByIdAsync(int id);
-        Task UpdateUserAsync(User user);
-        Task DeleteUserAsync(int id);
-    }
 
     public class UserService : IUserService
     {

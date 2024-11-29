@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UserService_test_task.Filters;
+using UserService_test_task.Model;
+using UserService_test_task.Services;
 
 namespace UserService_test_task.Controllers
 {

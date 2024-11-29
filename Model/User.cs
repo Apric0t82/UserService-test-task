@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace UserService_test_task
+namespace UserService_test_task.Model
 {
     public class User
     {
